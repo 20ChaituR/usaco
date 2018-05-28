@@ -4,6 +4,9 @@
 
 import java.util.Scanner;
 
+/**
+ * this one is min seg tree that can add a value to each element in a range
+ */
 public class SegTree {
 
     int N;
@@ -14,6 +17,11 @@ public class SegTree {
     void readFile() {
         Scanner sc = new Scanner(System.in);
         N = sc.nextInt();
+        /*
+        sample input:
+        7
+        3 1 4 1 5 9 2
+         */
         arr = new int[N + 1];
         for (int i = 1; i < arr.length; i++) {
             arr[i] = sc.nextInt();
@@ -24,7 +32,7 @@ public class SegTree {
     }
 
     void buildTree(int node, int l, int r) {
-        if (node >= arr.length) {
+        if (node >= seg.length) {
             return;
         }
         if (l == r) {
@@ -39,8 +47,8 @@ public class SegTree {
 
     // finds min between a and b
     int query(int node, int l, int r, int a, int b) {
-        if (node >= arr.length) {
-            return 0;
+        if (node >= seg.length) {
+            return Integer.MAX_VALUE;
         }
         if (lazy[node] != 0) {
             seg[node] += lazy[node];
@@ -52,7 +60,7 @@ public class SegTree {
             return seg[node];
         }
         if (r < a || l > b) {
-            return 0;
+            return Integer.MAX_VALUE;
         }
         int m = (l + r) / 2;
         return Math.min(query(2 * node, l, m, a, b), query(2 * node + 1, m + 1, r, a, b));
@@ -60,7 +68,7 @@ public class SegTree {
 
     // adds x to all values between a and b
     void update(int node, int l, int r, int a, int b, int x) {
-        if (node >= arr.length) {
+        if (node >= seg.length) {
             return;
         }
         if (lazy[node] != 0) {
@@ -83,11 +91,11 @@ public class SegTree {
 
     void solve() {
         buildTree(1, 1, N);
-        int a = 2;
-        int b = 5;
-        query(1, 1, N, a, b);
-        int x = 3;
-        update(1, 1, N, a, b, x);
+        // you can now query any range by calling query(1, 1, N, a, b)
+        // and you can update any range by calling update(1, 1, N, a, b, x)
+        System.out.println(query(1, 1, N, 2, 5)); // 11
+        update(1, 1, N, 3, 6, 5);
+        System.out.println(query(1, 1, N, 2, 5)); // 31
     }
 
     public static void main(String[] args) {
