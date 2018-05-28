@@ -1,0 +1,9 @@
+n = 1
+nsq = 1
+100 MOO {
+  100 MOO {
+    nsq = ( nsq ) + ( ( n ) + ( ( n ) + ( 1 ) ) )
+    n = ( n ) + ( 1 )
+  }
+}
+RETURN nsq
