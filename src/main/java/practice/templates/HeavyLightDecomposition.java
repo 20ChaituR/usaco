@@ -4,17 +4,36 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class HeavyLightDecomposition {
 
     // given
+    int N;
     List<List<Integer>> children = new ArrayList<>();
     int[] sizes;
     int[] parent;
+    int[] level;
+
+    void readFile() {
+        Scanner sc = new Scanner(System.in);
+        N = sc.nextInt();
+        
+    }
+
+    void buildDecomp() {
+        dfs(0);
+        lcaPrecomp();
+        getPaths(0);
+    }
 
     void dfs(int u) {
+        if (u == 0) {
+            level[u] = 0;
+        }
         for (int v : children.get(u)) {
             parent[v] = u;
+            level[v] = 1 + level[u];
             dfs(v);
             sizes[u] += sizes[v];
         }
@@ -24,6 +43,7 @@ public class HeavyLightDecomposition {
     List<List<Integer>> paths = new ArrayList<>();
     List<SegmentTree> seg = new ArrayList<>();
     int[] pathOfNode;
+    int[] pos;
 
     void getPaths(int u) {
         List<Integer> heavyPath = new ArrayList<>();
@@ -42,6 +62,7 @@ public class HeavyLightDecomposition {
             }
             cur = maxInd;
             heavyPath.add(cur);
+            pos[cur] = heavyPath.size();
             pathOfNode[cur] = paths.size();
         }
 
@@ -56,10 +77,102 @@ public class HeavyLightDecomposition {
     }
 
     void update(int u, int v, int x) {
-        
+        int l = lca(u, v);
+        int cur = u;
+        while (pathOfNode[cur] != pathOfNode[l]) {
+            seg.get(pathOfNode[cur]).update(0, pos[cur], x);
+            cur = parent[paths.get(pathOfNode[cur]).get(0)];
+        }
+        seg.get(pathOfNode[cur]).update(l, pos[cur], x);
+
+        cur = v;
+        while (pathOfNode[cur] != pathOfNode[l]) {
+            seg.get(pathOfNode[cur]).update(0, pos[cur], x);
+            cur = parent[paths.get(pathOfNode[cur]).get(0)];
+        }
+        seg.get(pathOfNode[cur]).update(l, pos[cur], x);
     }
 
-    void query(int u, int v) {
+    int query(int u, int v) {
+        int l = lca(u, v);
+        int min = Integer.MAX_VALUE;
+        int cur = u;
+        while (pathOfNode[cur] != pathOfNode[l]) {
+            min = Math.min(min, seg.get(pathOfNode[cur]).query(0, pos[cur]));
+            cur = parent[paths.get(pathOfNode[cur]).get(0)];
+        }
+        min = Math.min(min, seg.get(pathOfNode[cur]).query(l, pos[cur]));
+
+        cur = v;
+        while (pathOfNode[cur] != pathOfNode[l]) {
+            min = Math.min(min, seg.get(pathOfNode[cur]).query(0, pos[cur]));
+            cur = parent[paths.get(pathOfNode[cur]).get(0)];
+        }
+        min = Math.min(min, seg.get(pathOfNode[cur]).query(l, pos[cur]));
+
+        return min;
+    }
+
+    int[][] p;
+
+    void lcaPrecomp() {
+        int logN;
+        for (logN = 1; 1 << logN <= N; logN++) ;
+        p = new int[N][logN + 1];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; 1 << j < N; j++) {
+                p[i][j] = -1;
+            }
+        }
+
+        for (int j = 0; 1 << j < N; j++) {
+            for (int i = 0; i < N; i++) {
+                if (j == 0) {
+                    p[i][j] = parent[i];
+                } else {
+                    if (p[i][j - 1] != -1) {
+                        p[i][j] = p[p[i][j - 1]][j - 1];
+                    }
+                }
+            }
+        }
+    }
+
+    int lca(int u, int v) {
+        if (level[u] < level[v]) {
+            int temp = u;
+            u = v;
+            v = temp;
+        }
+
+        int log;
+        for (log = 1; 1 << log <= level[u]; log++) ;
+        log--;
+
+        for (int i = log; i >= 0; i--)
+            if (level[u] - (1 << i) >= level[v])
+                u = p[u][i];
+
+        if (u == v) {
+            return u;
+        }
+
+        for (int i = log; i >= 0; i--) {
+            if (p[u][i] != -1 && p[u][i] != p[v][i]) {
+                u = p[u][1];
+                v = p[v][i];
+            }
+        }
+
+        return parent[u];
+    }
+
+    void solve() {
+        buildDecomp();
+
+    }
+
+    public static void main(String[] args) {
 
     }
 
@@ -70,9 +183,12 @@ public class HeavyLightDecomposition {
         int[] seg;
 
         public SegmentTree(List<Integer> list) {
+            N = list.size();
             arr = new int[N];
-            for (int i = 0; i < N; i++) {
-                arr[i] = list.get(i);
+            int i = 0;
+            for (int u : list) {
+                arr[i] = u;
+                i++;
             }
 
             lazy = new int[4 * N + 1];
@@ -96,7 +212,7 @@ public class HeavyLightDecomposition {
         }
 
         // finds min between a and b
-        public int query(int node, int l, int r, int a, int b) {
+        private int query(int node, int l, int r, int a, int b) {
             if (node >= seg.length) {
                 return Integer.MAX_VALUE;
             }
@@ -116,8 +232,12 @@ public class HeavyLightDecomposition {
             return Math.min(query(2 * node, l, m, a, b), query(2 * node + 1, m + 1, r, a, b));
         }
 
+        public int query(int a, int b) {
+            return query(1, 1, arr.length, a, b);
+        }
+
         // adds x to all values between a and b
-        public void update(int node, int l, int r, int a, int b, int x) {
+        private void update(int node, int l, int r, int a, int b, int x) {
             if (node >= seg.length) {
                 return;
             }
@@ -137,6 +257,10 @@ public class HeavyLightDecomposition {
             int m = (l + r) / 2;
             update(2 * node, l, m, a, b, x);
             update(2 * node + 1, m + 1, r, a, b, x);
+        }
+
+        public void update(int a, int b, int x) {
+            update(1, 1, arr.length, a, b, x);
         }
     }
 

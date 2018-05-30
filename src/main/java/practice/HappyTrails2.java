@@ -69,8 +69,8 @@ public class HappyTrails2 {
         size[a] = 1;
     }
 
-    Pair MST(int[] state) {
-        int[] newState = new int[state.length];
+    Pair MST(short[] state) {
+        short[] newState = new short[state.length];
         int cost = 0;
         parent = new int[N];
         rank = new int[N];
@@ -119,7 +119,7 @@ public class HappyTrails2 {
             }
         });
 
-        Pair mst = MST(new int[M]);
+        Pair mst = MST(new short[M]);
         if (mst == null) {
             System.out.println(-1);
             return;
@@ -137,7 +137,7 @@ public class HappyTrails2 {
         while (!smallest.isEmpty() && k < K) {
             Pair cur = smallest.remove();
             kth[k] = cur.cost;
-            int[] state = new int[M];
+            short[] state = new short[M];
             System.arraycopy(cur.state, 0, state, 0, cur.change + 1);
             for (int i = cur.change + 1; i < M; i++) {
                 if (cur.state[i] == 1) {
@@ -167,9 +167,9 @@ public class HappyTrails2 {
     class Pair implements Comparable<Pair> {
         int cost;
         int change;
-        int[] state;
+        short[] state;
 
-        public Pair(int cost, int[] state) {
+        public Pair(int cost, short[] state) {
             this.cost = cost;
             this.state = state;
             this.change = -1;
