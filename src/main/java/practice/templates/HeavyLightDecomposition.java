@@ -18,7 +18,7 @@ public class HeavyLightDecomposition {
     void readFile() {
         Scanner sc = new Scanner(System.in);
         N = sc.nextInt();
-        
+
     }
 
     void buildDecomp() {
